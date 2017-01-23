@@ -1,6 +1,10 @@
 import json
 import operator
-import io
+import functools
+
+class notTraded(Exception):
+    pass
+
 
 def get_id(name, names):
     for k, v in names.items():
@@ -15,62 +19,71 @@ def openJson(fileLoc):
     Obj = json.JSONDecoder().decode(Obj) #TODO figure out why I can't use json.loads instead of JSONDecoder/all this
     return Obj
 
+def compareItemsCreateList (curList, pricesObj, comparisonKey, maxLen):
+    '''
+
+    :param curList: list that's manipulated in place
+    :param pricesObj: JSON object that has all of the price data
+    :param comparisonKey: function that only accepts rsItem as a parameter (may assume priceObj)
+    and should be used to compare
+    :param maxLen: how long you want the list to be
+    :return: Nothing
+    '''
+    for rsItem in pricesObj:
+        try:
+            metric = comparisonKey(rsItem)
+        except notTraded:
+            continue
+        if len(curList) < maxLen:
+            curList.append([pricesObj[rsItem], metric])
+        else:
+            curMinMetricItem = min(curList, key=operator.itemgetter(1))
+            curMinMetric = curMinMetricItem[1]
+            if metric > curMinMetric:
+                curList.remove(curMinMetricItem)
+                curList.append([rsItem, metric])
+    curList.sort(key=operator.itemgetter(1))
+    
 
 
-def highAlchBest(itemsNamesLoc="ItemNames", pricesSummaryLoc = "ItemSummary1_23.json"):
+def highAlchBest(itemsNamesLoc="ItemNames", pricesSummaryLoc = "ItemSummary1_23.json", maxLen = 10,
+                 priceKeys = ["overall_average", "buy_average", "sell_average"]):
     #open files
     pricesObj = openJson(pricesSummaryLoc)
-    natureRune = (pricesObj[get_id("Nature rune",pricesObj)]["overall_average"])
+
     #arrays for top 10
     top10Dict ={}
-    top10Dict["Avg"] = {}
-    top10Dict["Best"] = {}
-    top10Dict["Worst"] = {}
+    for key in priceKeys:
+        top10Dict[key] = {}
     for key in top10Dict:
         top10Dict[key]["List"] = []
-    #loop to populate
-    for rsItem in pricesObj:
-        # print(rsItem)
+    natureRunePrice = (pricesObj[get_id("Nature rune", pricesObj)]["overall_average"])
+
+    #make our compare function
+    def compareHighAlch(rsItem,priceKey):
         storePrice = pricesObj[rsItem]["sp"]
         highAlch = .6 * int(storePrice)
-        exchangePriceAvg = pricesObj[rsItem]["overall_average"]
-        exchangePriceBuy = pricesObj[rsItem]["buy_average"]
-        exchangePriceSell = pricesObj[rsItem]["sell_average"]
-        if min(exchangePriceSell,exchangePriceBuy,exchangePriceAvg) == 0:
-            continue #filter out anything that has any price of 0
-        cost = {}
-        cost["Avg"] = exchangePriceAvg + natureRune
-        cost["Best"] = exchangePriceBuy + natureRune
-        cost["Worst"] = exchangePriceSell + natureRune
-        for key in top10Dict:
-            profit = highAlch - cost[key]
-            curList = top10Dict[key]["List"]
-            if len(curList) < 10:
-                curList.append([pricesObj[rsItem],profit])
-            else:
-                curMinProfitItem = min(curList, key=operator.itemgetter(1))
-                curMinProfit = curMinProfitItem[1]
-                if profit > curMinProfit:
-                    curList.remove(curMinProfitItem)
-                    curList.append([rsItem,profit])
+        exchangePrice = pricesObj[rsItem][priceKey]
+        if exchangePrice == 0:
+            raise notTraded
+        cost = exchangePrice + natureRunePrice
+        profit = highAlch - cost
+        return profit
+
+    #loop to populate our lists
+    for key in top10Dict:
+        curList = top10Dict[key]["List"]
+        compareFunc = functools.partial(compareHighAlch, priceKey = key)
+        compareItemsCreateList(curList,pricesObj,compareFunc,maxLen)
+
     #print out the results
     for key in top10Dict:
         print("Top 10 items ranked give",key,"assumption")
         curList = top10Dict[key]["List"]
-        curList.sort(key = operator.itemgetter(1))
         for rsItem in curList:
-            print("rsItem name " + str(pricesObj[rsItem[0]]["name"]) + " rsItem profit " + str(rsItem[1]))
+            print(str(key)+ " " + str(pricesObj[rsItem[0]]["name"]) + " rsItem profit " + str(rsItem[1]))
 
 
-
-
-
-
-
-    # prices = json.loads(pricesObj)
-    # print("loaded json", prices)
-    # for line in prices_file:
-    #     print(line)
 
 highAlchBest()
 
