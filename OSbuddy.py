@@ -60,7 +60,7 @@ def highAlchBest(itemsNamesLoc="ItemNames", pricesSummaryLoc = "ItemSummary1_23.
     natureRunePrice = (pricesObj[get_id("Nature rune", pricesObj)]["overall_average"])
 
     #make our compare function
-    def compareHighAlch(rsItem,priceKey):
+    def compareHighAlch(priceKey,rsItem):
         storePrice = pricesObj[rsItem]["sp"]
         highAlch = .6 * int(storePrice)
         exchangePrice = pricesObj[rsItem][priceKey]
@@ -73,7 +73,7 @@ def highAlchBest(itemsNamesLoc="ItemNames", pricesSummaryLoc = "ItemSummary1_23.
     #loop to populate our lists
     for key in top10Dict:
         curList = top10Dict[key]["List"]
-        compareFunc = functools.partial(compareHighAlch, priceKey = key)
+        compareFunc = functools.partial(compareHighAlch, key)
         compareItemsCreateList(curList,pricesObj,compareFunc,maxLen)
 
     #print out the results
@@ -117,5 +117,5 @@ def findMatchMaking(pricesSummaryLoc = "ItemSummary1_23.json", maxlen = 10):
 
 
 
-# highAlchBest()
+highAlchBest()
 findMatchMaking(maxlen=20)
