@@ -6,9 +6,14 @@ Need at least one for creating objects that have a time history
 '''
 import json
 import requests
+from selenium import webdriver
+import time
+
+# 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36',
+
 
 HEADERS = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36',
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0',
     'cookie': 'redacted cloudflare cookie'
 }
 
@@ -18,11 +23,16 @@ RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL = 'https://api.rsbuddy.com/grandExchange?a=gu
 
 def get_price(item_id):
     price = json.loads(requests.get(RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL + str(item_id), headers=HEADERS).text)
+    print(price)
     return price['overall']
 
+def get_id(name, names):
+    for k, v in names.items():
+        if v["name"]==name:
+            return k
 
 def main():
-    names = json.loads(requests.get(RSBUDDY_EXCHANGE_NAMES_URL, headers=HEADERS).text)
+    names = browser()
     items_file = open('items.txt', 'r')
     prices_file = open('prices.txt', 'w')
     for line in items_file:
@@ -31,8 +41,18 @@ def main():
     items_file.close()
     prices_file.close()
 
+def browser(url=RSBUDDY_EXCHANGE_NAMES_URL):
+    browserObj = webdriver.WebDriver()
+    browserObj.get(RSBUDDY_EXCHANGE_NAMES_URL)
+    time.sleep(5)
+    print(browserObj)
+    elem = browserObj.find_element_by_xpath('/html/body')
+    return elem.text
+    # browserObj.get('http://seleniumhq.org')
 
 main()
+# itemNames = browser()
+# print(itemNames)
 
 
 #
