@@ -46,7 +46,7 @@ def compareItemsCreateList (curList, pricesObj, comparisonKey, maxLen):
     
 
 
-def highAlchBest(itemsNamesLoc="ItemNames", pricesSummaryLoc = "ItemSummary1_23.json", maxLen = 10,
+def highAlchBest(pricesSummaryLoc = "ItemSummary1_23.json", maxLen = 10,
                  priceKeys = ["overall_average", "buy_average", "sell_average"]):
     #open files
     pricesObj = openJson(pricesSummaryLoc)
@@ -77,6 +77,7 @@ def highAlchBest(itemsNamesLoc="ItemNames", pricesSummaryLoc = "ItemSummary1_23.
         compareItemsCreateList(curList,pricesObj,compareFunc,maxLen)
 
     #print out the results
+    print("Printing out the result of High Alch analysis")
     for key in top10Dict:
         print("Top 10 items ranked give",key,"assumption")
         curList = top10Dict[key]["List"]
@@ -117,5 +118,5 @@ def findMatchMaking(pricesSummaryLoc = "ItemSummary1_23.json", maxlen = 10):
 
 
 
-highAlchBest()
-findMatchMaking(maxlen=20)
+# highAlchBest('prices.txt')
+findMatchMaking('prices.txt',maxlen=20)

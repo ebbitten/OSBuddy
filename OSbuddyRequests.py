@@ -21,10 +21,10 @@ RSBUDDY_EXCHANGE_NAMES_URL = 'https://rsbuddy.com/static/exchange/names.json'
 RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL = 'https://api.rsbuddy.com/grandExchange?a=guidePrice&i='
 
 
-def get_price(item_id):
-    price = json.loads(requests.get(RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL + str(item_id), headers=HEADERS).text)
-    print(price)
-    return price['overall']
+# def get_price(item_id):
+#     price = json.loads(requests.get(RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL + str(item_id), headers=HEADERS).text)
+#     print(price)
+#     return price['overall']
 
 def get_id(name, names):
     for k, v in names.items():
@@ -33,17 +33,18 @@ def get_id(name, names):
 
 def main():
     names = browser()
-    items_file = open('items.txt', 'r')
-    prices_file = open('prices.txt', 'w')
-    for line in items_file:
-        line = line.replace('\n', '')
-        prices_file.write(line + ':' + str(get_price(get_id(line, names))) + '\n')
+    items_file = open('items.txt', 'w')
+    items_file.write(names)
     items_file.close()
+    base_prices = browser('https://rsbuddy.com/exchange/summary.json')
+    prices_file = open('prices.txt', 'w')
+    prices_file.write(base_prices)
+
     prices_file.close()
 
 def browser(url=RSBUDDY_EXCHANGE_NAMES_URL):
     browserObj = webdriver.WebDriver()
-    browserObj.get(RSBUDDY_EXCHANGE_NAMES_URL)
+    browserObj.get(url)
     time.sleep(5)
     print(browserObj)
     elem = browserObj.find_element_by_xpath('/html/body')
