@@ -1,0 +1,27 @@
+g=60
+
+from:
+1486342800000
+to:
+1486947600000
+difference:
+604,800,000
+
+g=1440
+from:
+1486339200000
+to:
+1486944000000
+difference:
+604,800,000
+lines:
+8
+difference per line(day):
+75600000
+difference per minute (minute):
+52500
+difference per second:
+875
+
+where Datecode is the number of milliseconds elapsed from January 1st, 1970 and Price is the item's market price for that day.
+time.time() returns seconds since January 1st, 1970

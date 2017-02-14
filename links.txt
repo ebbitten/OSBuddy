@@ -3,3 +3,6 @@ https://rsbuddy.com/exchange/names.json
 http://lets-flip.com/threads/price-data-api.925/
 
 https://www.reddit.com/r/getracker/
+https://www.reddit.com/r/2007scape/comments/3g06rq/guide_using_the_old_school_ge_page_api/
+https://www.sythe.org/threads/which-bot-is-best-to-write-my-own-scripts-atm/
+https://villavu.com/forum/showthread.php?t=115343

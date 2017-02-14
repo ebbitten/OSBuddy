@@ -8,7 +8,7 @@ import json
 import requests
 from selenium import webdriver
 import time
-
+import pickle
 # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36',
 
 
@@ -18,7 +18,7 @@ HEADERS = {
 }
 
 RSBUDDY_EXCHANGE_NAMES_URL = 'https://rsbuddy.com/static/exchange/names.json'
-RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL = 'https://api.rsbuddy.com/grandExchange?a=guidePrice&i='
+RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL = 'https://api.rsbuddy.com/grandExchange?a=graph&i='
 
 
 # def get_price(item_id):
@@ -31,7 +31,7 @@ def get_id(name, names):
         if v["name"]==name:
             return k
 
-def main():
+def getOSBuddySummary():
     names = browser()
     items_file = open('items.txt', 'w')
     items_file.write(names)
@@ -51,7 +51,8 @@ def browser(url=RSBUDDY_EXCHANGE_NAMES_URL):
     return elem.text
     # browserObj.get('http://seleniumhq.org')
 
-main()
+getOSBuddySummary()
+
 # itemNames = browser()
 # print(itemNames)
 
