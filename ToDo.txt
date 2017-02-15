@@ -2,7 +2,7 @@ close browsers aftewrads
 Print out the buy/sell prices for results of high alch analyses
 get rid of "rsItem" in high alch analysis
 group together items in high alch analaysis
-
+Have some sort of filter by trade volume as a function of total gp
 
 
 Fix selenium

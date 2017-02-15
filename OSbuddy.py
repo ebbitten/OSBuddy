@@ -118,5 +118,5 @@ def findMatchMaking(pricesSummaryLoc = "ItemSummary1_23.json", maxlen = 10):
 
 
 
-# highAlchBest('prices.txt')
+highAlchBest('prices.txt')
 findMatchMaking('prices.txt',maxlen=20)
