@@ -7,6 +7,7 @@ Need at least one for creating objects that have a time history
 '''
 #TODO: Will create text files, OSBFunctions should be able to take text files and object them and  pickle them
 #TODO put all text file names in globals at the top
+#TODO figure out a way to be able to pause and resume the long queries
 import json
 import requests
 from selenium import webdriver
@@ -78,9 +79,16 @@ def getPrice(itemID, type='graph', startTime=time.time()*1000, frequency=1440):
     url = RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL + '?a=' +str(type)     + '&start=' +str(startTime) + \
           '&g=' + str(frequency) +'&i=' +str(itemID)
     print(url)
-    price = json.loads(requests.get(url,headers=HEADERS).text)
+    try:
+        price = json.loads(requests.get(url,headers=HEADERS).text)
+        return price
+    except :
+        print("Failed with ")
+        print(url)
+        print("for an item ID of ")
+        print(itemID)
+        return "Delete"
 
-    return price
 
 
 def populateHistorical(startTime=time.time(), frequency=8000,timeSleep =.5):
@@ -97,20 +105,23 @@ def populateCurrentOpenOrders(timeSleep=.5):
     items = openJson('items.txt')
     currentOpen = {}
     for i in items:
-        currentOpen[i] = getPrice(i,'guidePrice')
+        price = getPrice(i,'guidePrice')
+        if price == "Delete":
+            continue
+        currentOpen[i] = price
         time.sleep(timeSleep)
     currentOpen_file = open('currentOpen','w')
     currentOpen_file.write(json.dumps(currentOpen))
     currentOpen_file.close()
 
-populateCurrentOpenOrders()
+populateCurrentOpenOrders(1)
 
 
 
 
 
 
-populateHistorical()
+populateHistorical(timeSleep=1)
 
 
 
