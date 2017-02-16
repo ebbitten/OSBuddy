@@ -33,13 +33,13 @@ def compareItemsCreateList (curList, pricesObj, comparisonKey, maxLen):
     :param maxLen: how long you want the list to be
     :return: Nothing
     '''
-    for rsItem in pricesObj:
+    for rsItem in pricesObj.items:
         try:
             metric = comparisonKey(rsItem)
         except notTraded:
             continue
         if len(curList) < maxLen:
-            curList.append([pricesObj[rsItem], metric])
+            curList.append([rsItem, metric])
         else:
             curMinMetricItem = min(curList, key=operator.itemgetter(1))
             curMinMetric = curMinMetricItem[1]
@@ -48,10 +48,20 @@ def compareItemsCreateList (curList, pricesObj, comparisonKey, maxLen):
                 curList.append([rsItem, metric])
     curList.sort(key=operator.itemgetter(1))
 
-class rsItem (object):
+class rsItem (dict):
     def __init__(self,ID,name):
+        #comes from items.txt
         self.ID = ID
         self.name = name
+        #comes from currentOpen.txt
+        self.buyingQuantity=0
+        self.buying=0
+        self.selling=0
+        self.sellingQuantity=0
+        self.overall = 0
+        #Is populated druing runs
+        self.profit = 0
+        self.metric = 0
 
 class pricesDict(object):
     def __init__(self):
@@ -69,10 +79,9 @@ class pricesDict(object):
         for item in self.items:
             if item.ID in currentOpen:
                 for key in currentOpen[str(item.ID)]:
-                    item.key = currentOpen[item.ID][key]
-                    print(key)
-                    print(item.key)
+                    item[key] = currentOpen[item.ID][key]
+
 
 #
-newDict = pricesDict()
-newDict.addOpen()
+
+

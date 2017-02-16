@@ -114,15 +114,9 @@ def populateCurrentOpenOrders(timeSleep=.5):
     currentOpen_file.write(json.dumps(currentOpen))
     currentOpen_file.close()
 
-populateCurrentOpenOrders(1)
+# populateCurrentOpenOrders(1)
+# populateHistorical(timeSleep=1)
 
-
-
-
-
-
-populateHistorical(timeSleep=1)
-
-
+print(getPrice(5321,'guidePrice'))
 
 

@@ -1,6 +1,6 @@
 import functools
 
-from OSBFunctions import openJson, get_id, notTraded, compareItemsCreateList
+from OSBFunctions import openJson, get_id, notTraded, compareItemsCreateList, rsItem, pricesDict
 
 
 def highAlchBest(pricesSummaryLoc = "ItemSummary1_23.json", maxLen = 10,
@@ -75,3 +75,39 @@ def findMatchMaking(pricesSummaryLoc = "ItemSummary1_23.json", maxlen = 10):
 
 
 
+def betterMatchMaking( price_file = 'currentOpen', maxlen = 10, minProfit = 200000, maxSpending = 40000000):
+    pricesObj = pricesDict()
+    pricesObj.addOpen()
+    curList = []
+
+    def compareMatchMaking(minProfit, maxSpending, rsItem):
+        try:
+            buyingPrice = rsItem['buying']
+            sellingPrice = rsItem['selling']
+            volume = min(rsItem['buyingQuantity'], rsItem['sellingQuantity'])
+        except KeyError:
+            return 0
+        profitPer = (sellingPrice-1) - (buyingPrice+1)
+
+        if profitPer<0:
+            return 0
+        if volume * profitPer < minProfit:
+            return 0
+        elif (minProfit/(profitPer))*sellingPrice>maxSpending:
+            return 0
+        else:
+            metric = profitPer/buyingPrice
+            rsItem['profit'] = profitPer
+            return metric
+
+    compareFunc = functools.partial(compareMatchMaking,minProfit,maxSpending)
+
+    compareItemsCreateList(curList, pricesObj, compareFunc, maxlen)
+
+    for group in curList:
+        rsItem = group[0]
+        print("Potential profit for item ", rsItem.name, " is ", rsItem['profit'],
+              " Each item costs ", rsItem['buying'], "to buy, And there are currently ", rsItem['buyingQuantity']
+              , " of them being bought and ", rsItem['sellingQuantity']," being sold at ", rsItem['selling']," ID is ", rsItem.ID)
+
+betterMatchMaking()
