@@ -1,7 +1,7 @@
 import json
 import operator
 
-from OSBAlgos import findMatchMaking
+
 #TODO add a way to apply multiple metrics to compile a list
 #TODO find a way to compute different metrics (especially those that require server requests
 
@@ -49,5 +49,4 @@ def compareItemsCreateList (curList, pricesObj, comparisonKey, maxLen):
     curList.sort(key=operator.itemgetter(1))
 
 
-# highAlchBest('prices.txt')
-findMatchMaking('prices.txt', maxlen=20)
+
