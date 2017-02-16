@@ -1,9 +1,11 @@
 '''
 This will be a library to create different json objects
 Need one to for creating a snapshot of prices
+
 Need at least one for creating objects that have a time history
 
 '''
+#TODO: Will create text files, OSBFunctions should be able to take text files and object them and  pickle them
 import json
 import requests
 from selenium import webdriver
@@ -32,31 +34,25 @@ def get_id(name, names):
             return k
 
 def getOSBuddySummary():
-    names = browser()
-    items_file = open('items.txt', 'w')
+    names = getElementByBrowser('https://rsbuddy.com/static/exchange/names.json')
+    items_file = open('item.txt', 'w')
     items_file.write(names)
     items_file.close()
-    base_prices = browser('https://rsbuddy.com/exchange/summary.json')
+    base_prices = getElementByBrowser('https://rsbuddy.com/exchange/summary.json')
     prices_file = open('prices.txt', 'w')
     prices_file.write(base_prices)
-
     prices_file.close()
 
-def browser(url=RSBUDDY_EXCHANGE_NAMES_URL):
+def getElementByBrowser(url=RSBUDDY_EXCHANGE_NAMES_URL, element='/html/body'):
     browserObj = webdriver.WebDriver()
     browserObj.get(url)
     time.sleep(5)
     print(browserObj)
-    elem = browserObj.find_element_by_xpath('/html/body')
+    elem = browserObj.find_element_by_xpath(element)
     return elem.text
     # browserObj.get('http://seleniumhq.org')
 
 getOSBuddySummary()
-
-# itemNames = browser()
-# print(itemNames)
-
-
 #
 #
 # class starMarket(object):
