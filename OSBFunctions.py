@@ -48,5 +48,23 @@ def compareItemsCreateList (curList, pricesObj, comparisonKey, maxLen):
                 curList.append([rsItem, metric])
     curList.sort(key=operator.itemgetter(1))
 
+class rsItem (object):
+    def __init__(self,ID,name):
+        self.ID = ID
+        self.name = name
+
+class pricesDict(object):
+    def __init__(self):
+        self.items = []
+        items = openJson('items.txt')
+        for i in items:
+            self.items.append(rsItem(i,items[i]['name']))
+    def addOpen(self):
+        currentOpen = openJson('currentOpen.txt')
+        for item in self.items:
+            for key in currentOpen[item.ID]:
+                item.key = currentOpen[item.ID][key]
 
 
+newDict = pricesDict()
+newDict.addOpen()
