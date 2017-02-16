@@ -104,7 +104,7 @@ def populateCurrentOpenOrders(timeSleep=.5):
         if len(currentOpen)>10:
             break
     currentOpen_file = open('currentOpen','w')
-    currentOpen_file.write(str(currentOpen))
+    currentOpen_file.write(json.dumps(currentOpen))
     currentOpen_file.close()
 
 populateCurrentOpenOrders()

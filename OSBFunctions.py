@@ -60,11 +60,19 @@ class pricesDict(object):
         for i in items:
             self.items.append(rsItem(i,items[i]['name']))
     def addOpen(self):
-        currentOpen = openJson('currentOpen.txt')
+        '''
+
+        :return: Populates rsItems with "BuyingQuantity", "Buying" (price), "Selling" (price), "Selling Quantity", and
+        "Overall" (Price)
+        '''
+        currentOpen = openJson('currentOpen')
         for item in self.items:
-            for key in currentOpen[item.ID]:
-                item.key = currentOpen[item.ID][key]
+            if item.ID in currentOpen:
+                for key in currentOpen[str(item.ID)]:
+                    item.key = currentOpen[item.ID][key]
+                    print(key)
+                    print(item.key)
 
-
+#
 newDict = pricesDict()
 newDict.addOpen()
