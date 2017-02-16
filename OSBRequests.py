@@ -89,8 +89,6 @@ def populateHistorical(startTime=time.time(), frequency=8000,timeSleep =.5):
     for i in items:
         historicals[i]=getPrice(i,'graph',startTime,frequency)
         time.sleep(timeSleep)
-        if len(historicals)>10:
-            break
     historic_file = open('historicPrice','w')
     historic_file.write(str(historicals))
     historic_file.close()
@@ -101,8 +99,6 @@ def populateCurrentOpenOrders(timeSleep=.5):
     for i in items:
         currentOpen[i] = getPrice(i,'guidePrice')
         time.sleep(timeSleep)
-        if len(currentOpen)>10:
-            break
     currentOpen_file = open('currentOpen','w')
     currentOpen_file.write(json.dumps(currentOpen))
     currentOpen_file.close()
