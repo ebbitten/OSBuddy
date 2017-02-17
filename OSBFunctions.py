@@ -62,6 +62,7 @@ class rsItem (dict):
         #Is populated druing runs
         self.profit = 0
         self.metric = 0
+#TODO figure out why I can't populate any of the above at run time, also why can it only be called in bracket notation?
 
 class pricesDict(object):
     def __init__(self):
