@@ -106,8 +106,8 @@ def betterMatchMaking( price_file = 'currentOpen', maxlen = 10, minProfit = 2000
 
     for group in curList:
         rsItem = group[0]
-        print("Potential profit for item ", rsItem.name, " is ", rsItem['profit'],
-              " Each item costs ", rsItem['buying'], "to buy, And there are currently ", rsItem['buyingQuantity']
-              , " of them being bought and ", rsItem['sellingQuantity']," being sold at ", rsItem['selling']," ID is ", rsItem.ID)
+        print("Potential profit for ", rsItem.name, " is ", rsItem['profit'],
+              " Buy Price ", rsItem['buying'], "Sell Price ", rsItem['selling'], "buy Quantity ",
+              rsItem['buyingQuantity'], " Sell Quantity ", rsItem['sellingQuantity']," ID is ", rsItem.ID)
 
 betterMatchMaking()
