@@ -100,7 +100,7 @@ def populateHistorical(startTime=time.time(), frequency=8000,timeSleep =.5):
     historic_file = open('historicPrice','w')
     historic_file.write(str(historicals))
     historic_file.close()
-
+#TODO move exception code down here and have it populate another file for retrying
 def populateCurrentOpenOrders(timeSleep=.5):
     items = openJson('items.txt')
     currentOpen = {}
