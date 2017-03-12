@@ -26,10 +26,7 @@ RSBUDDY_EXCHANGE_NAMES_URL = 'https://rsbuddy.com/static/exchange/names.json'
 RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL = 'https://api.rsbuddy.com/grandExchange'
 
 
-# def get_price(item_id):
-#     price = json.loads(requests.get(RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL + str(item_id), headers=HEADERS).text)
-#     print(price)
-#     return price['overall']
+
 
 def get_id(name, names):
     for k, v in names.items():
@@ -67,8 +64,8 @@ def getPrice(itemID, type='graph', startTime=time.time()*1000, frequency=1440):
     :param itemID: ID to pass in
     :param type: 'graph' to get timestamped based prices
     , 'guidePrice' to get current buy/sell and quantities
-    :param startTime: miliseconds since 1/1 1970
-    :param frequency: how
+    :param startTime: miliseconds since 1/1 1970. time.time() returns current milliseconds
+    :param frequency: how many minutes
     :return:js Obbject with properties depdendent on the type  parameter.
     'guidePrice' returns:
     {"overall":206,"buying":207,"buyingQuantity":598437,"selling":206,"sellingQuantity":564859}
@@ -83,12 +80,17 @@ def getPrice(itemID, type='graph', startTime=time.time()*1000, frequency=1440):
         price = json.loads(requests.get(url,headers=HEADERS).text)
         return price
     except :
+        #TODO update this so that it can be used to return an error log that can be autoreplayed
         print("Failed with ")
         print(url)
         print("for an item ID of ")
         print(itemID)
         return "Delete"
 
+def updatePrice(itemID, curObj, properties = ['buying','buyingQuantity','selling','sellingQuantity']):
+
+    pass
+    #todo allow an item to come in and update various properties
 
 
 def populateHistorical(startTime=time.time(), frequency=8000,timeSleep =.5):
@@ -113,6 +115,7 @@ def populateCurrentOpenOrders(timeSleep=.5):
     currentOpen_file = open('currentOpen','w')
     currentOpen_file.write(json.dumps(currentOpen))
     currentOpen_file.close()
+    print("Completed populating current orders!")
 
 populateCurrentOpenOrders(.4)
 # populateHistorical(timeSleep=1)
