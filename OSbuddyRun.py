@@ -1,2 +1,6 @@
 # highAlchBest('prices.txt')
-findMatchMaking('prices.txt', maxlen=20)
+import OSBRequests
+import OSBFunctions
+import OSBFunctions
+OSBRequests.populateCurrentOpenOrders()
+OSBFunctions.betterMatchMaking()
