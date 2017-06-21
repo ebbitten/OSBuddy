@@ -75,7 +75,7 @@ def findMatchMaking(pricesSummaryLoc = "ItemSummary1_23.json", maxlen = 10):
 
 
 
-def betterMatchMaking( price_file = 'currentOpen', maxlen = 5, minProfit = 200000, maxSpending = 40000000, minVolume=0):
+def betterMatchMaking( price_file = 'currentOpen', maxlen = 10, minProfit = 200000, maxSpending = 40000000, volLimit=10):
     pricesObj = pricesDict()
     pricesObj.addOpen()
     curList = []
@@ -91,11 +91,11 @@ def betterMatchMaking( price_file = 'currentOpen', maxlen = 5, minProfit = 20000
 
         if profitPer<0:
             return 0
-        if volume<minVolume:
+        if volume<volLimit:
             return 0
         if volume * profitPer < minProfit:
             return 0
-        elif (minProfit/(profitPer))*sellingPrice>maxSpending:
+        if (minProfit/(profitPer))*sellingPrice>maxSpending:
             return 0
         else:
             metric = profitPer/buyingPrice
@@ -112,5 +112,3 @@ def betterMatchMaking( price_file = 'currentOpen', maxlen = 5, minProfit = 20000
               " Buy Price ", rsItem['buying'], "Sell Price ", rsItem['selling'], "buy Quantity ",
               rsItem['buyingQuantity'], " Sell Quantity ", rsItem['sellingQuantity']," ID is ", rsItem.ID)
 
-
-# highAlchBest()
