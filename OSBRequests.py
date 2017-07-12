@@ -12,8 +12,10 @@ import json
 import requests
 from selenium import webdriver
 import time
+import datetime
 import pickle
 from OSBFunctions import openJson
+import functools
 # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36',
 
 
@@ -24,6 +26,7 @@ HEADERS = {
 
 RSBUDDY_EXCHANGE_NAMES_URL = 'https://rsbuddy.com/static/exchange/names.json'
 RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL = 'https://api.rsbuddy.com/grandExchange'
+GE_EXCHANGE_URL = 'http://services.runescape.com/m=itemdb_oldschool/api/graph/'
 
 
 
@@ -57,7 +60,21 @@ def getElementByBrowser(url=RSBUDDY_EXCHANGE_NAMES_URL, element='/html/body'):
     elem = browserObj.find_element_by_xpath(element)
     return elem.text
 
-
+def queryPrice(url):
+    '''
+    takes in a url, returns a JSON object
+    :param url:
+    :return:
+    '''
+    print(url)
+    try:
+        price = json.loads(requests.get(url,headers=HEADERS).text)
+        return price
+    except :
+        #TODO update this so that it can be used to return an error log that can be autoreplayed
+        print("Failed with ")
+        print(url)
+        return "Delete"
 
 def getPrice(itemID, type='graph', startTime=time.time()*1000, frequency=1440):
     '''
@@ -75,51 +92,82 @@ def getPrice(itemID, type='graph', startTime=time.time()*1000, frequency=1440):
     startTime=int(startTime)
     url = RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL + '?a=' +str(type)     + '&start=' +str(startTime) + \
           '&g=' + str(frequency) +'&i=' +str(itemID)
-    print(url)
-    try:
-        price = json.loads(requests.get(url,headers=HEADERS).text)
-        return price
-    except :
-        #TODO update this so that it can be used to return an error log that can be autoreplayed
-        print("Failed with ")
-        print(url)
-        print("for an item ID of ")
-        print(itemID)
-        return "Delete"
-
-def updatePrice(itemID, curObj, properties = ['buying','buyingQuantity','selling','sellingQuantity']):
-
-    pass
-    #todo allow an item to come in and update various properties
+    return queryPrice(url)
 
 
-def populateHistorical(startTime=time.time(), frequency=8000,timeSleep =.5):
+def getPriceGE(itemID):
+    '''
+    Gets the price from the OSRS GE, benefit is that it can go back six months
+    :param itemID: ID to pass in
+    :return: JSON object of the form "ts":price
+    '''
+    url = GE_EXCHANGE_URL + str(itemID) + ".json"
+    return queryPrice(url)
+
+def ts2date(ts):
+    dateObj = datetime.date.fromtimestamp(ts/1000)
+    print(dateObj.ctime())
+
+def fillJSONfromFunction(dictObj, functionObj, timeSleep = .5, tries = 3):
+    '''
+    Takes in a dictionary object to populate data from a given source using the function object
+    :param dictObj: dictionary that gets filled with information based on the requestor function passed in
+    :param functionObj: requestor function to query websites for prices
+    :param timeSleep: how long to sleep between requests
+    :param tries: how many times to try to get the same item populated, necessary to prevent infinite loop
+    :return: Nothing, mutates the dictObj though
+    '''
+    items = openJson('items.txt')
+    rerun = []
+    previousItem = ""
+    count = 0
+    for i in items:
+        dictObj[i] = functionObj(i)
+        if dictObj[i] == "Delete":
+            rerun.append(i)
+        time.sleep(timeSleep)
+    while len(rerun>0):
+        currentItem = rerun.pop(0)
+        if currentItem == previousItem:
+            count += 1
+            if count == tries:
+                break
+        else:
+            count = 0
+        dictObj[currentItem] = functionObj(currentItem)
+        if dictObj[currentItem] == "Delete":
+            rerun.append(currentItem)
+        previousItem = currentItem
+        time.sleep(timeSleep)
+
+
+
+
+def populateHistorical(startTime=time.time(), frequency=8000, timeSleep = 4, tries = 3, source = "GE"):
     items= openJson('items.txt')
     historicals = {}
-    for i in items:
-        historicals[i]=getPrice(i,'graph',startTime,frequency)
-        time.sleep(timeSleep)
+    GEpricerequestor = functools.partial(getPriceGE)
+    fillJSONfromFunction(historicals, GEpricerequestor, timeSleep)
+
     historic_file = open('historicPrice','w')
     historic_file.write(str(historicals))
     historic_file.close()
-#TODO move exception code down here and have it populate another file for retrying
+
+
 def populateCurrentOpenOrders(timeSleep=.5):
     items = openJson('items.txt')
     currentOpen = {}
-    for i in items:
-        price = getPrice(i,'guidePrice')
-        if price == "Delete":
-            continue
-        currentOpen[i] = price
-        time.sleep(timeSleep)
+    OSBcurrentRequestor = functools.partial(getPrice,type = 'guideprice' )
+    fillJSONfromFunction(currentOpen, OSBcurrentRequestor, timeSleep)
     currentOpen_file = open('currentOpen','w')
     currentOpen_file.write(json.dumps(currentOpen))
     currentOpen_file.close()
     print("Completed populating current orders!")
 
 
-# populateHistorical(timeSleep=1)
+populateHistorical()
 
 # print(getPrice(5321,'guidePrice'))
+
 
 
