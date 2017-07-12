@@ -16,6 +16,7 @@ import datetime
 import pickle
 from OSBFunctions import openJson
 import functools
+import csv
 # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36',
 
 
@@ -27,6 +28,8 @@ HEADERS = {
 RSBUDDY_EXCHANGE_NAMES_URL = 'https://rsbuddy.com/static/exchange/names.json'
 RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL = 'https://api.rsbuddy.com/grandExchange'
 GE_EXCHANGE_URL = 'http://services.runescape.com/m=itemdb_oldschool/api/graph/'
+GE_HISTORIC_JSON_PRICE_FILE = 'historicPrice'
+GE_HISTORIC_CSV_PRICE_FILE = 'historic.csv'
 
 
 
@@ -128,6 +131,7 @@ def fillJSONfromFunction(dictObj, functionObj, timeSleep = .5, tries = 3):
         time.sleep(timeSleep)
     while len(rerun>0):
         currentItem = rerun.pop(0)
+        print("Retrying " + str(currentItem))
         if currentItem == previousItem:
             count += 1
             if count == tries:
@@ -143,13 +147,14 @@ def fillJSONfromFunction(dictObj, functionObj, timeSleep = .5, tries = 3):
 
 
 
-def populateHistorical(startTime=time.time(), frequency=8000, timeSleep = 4, tries = 3, source = "GE"):
+def populateHistoricalJSON(startTime=time.time(), frequency=8000, timeSleep = 4, tries = 3, source = "GE"):
     items= openJson('items.txt')
     historicals = {}
-    GEpricerequestor = functools.partial(getPriceGE)
-    fillJSONfromFunction(historicals, GEpricerequestor, timeSleep)
+    if source =="GE":
+        pricerequestor = functools.partial(getPriceGE)
+    fillJSONfromFunction(historicals, pricerequestor, timeSleep)
 
-    historic_file = open('historicPrice','w')
+    historic_file = open(GE_HISTORIC_JSON_PRICE_FILE,'w')
     historic_file.write(str(historicals))
     historic_file.close()
 
@@ -165,7 +170,69 @@ def populateCurrentOpenOrders(timeSleep=.5):
     print("Completed populating current orders!")
 
 
-populateHistorical()
+def createCSVfromJSON(JSONfile, csvFile, encoding, parserData, parserTS):
+    '''First row will have the encoding format for how data will be stored
+    in each cell in the first column (decided by the encoding parameter
+    , and all the timestamps in the rest of the columns. The parsing parameter
+    will be a function that assists with decoding the JSON. Columns should go from oldest to newest
+    Ultimately this should let me work with Pandas and do things in terms of arrays
+    parserData and parserTS should both take in a JSON obj and an item id
+    '''
+    items = openJson('items.txt')
+    JSONObj = openJson(JSONfile)
+    firstLine = True
+    csvObj = open(csvFile, 'w', newline='')
+    csvwriter = csv.writer(csvObj)
+    for i in items:
+        dataLine = parserData(i, JSONObj) #This should either be a list with the same number of elements as tsLine or a dict
+        if firstLine:
+            tsLine = parserTS(i, JSONObj)  # Can control the order of a list when printing to CSV which makes it attractive
+            header = tsLine
+            header.insert(0, encoding)
+            csvwriter.writerow(header)
+            firstLine = False
+        currentLine = dataLine[:]
+        currentLine.insert(0, i) #also insert the item number in the 0th column
+        print("testing" + str(currentLine))
+        csvwriter.writerow(currentLine)
+    csvObj.close()
+
+
+def updateCSVfromJSON():
+    pass
+
+
+def makeHistoricCSVfromGE(jsonFile = GE_HISTORIC_JSON_PRICE_FILE, csvFile = GE_HISTORIC_CSV_PRICE_FILE, pullData = None):
+    #TODO consider putting all of these functions into classes and methods
+    def GEJSONparserData(i, JSONObj):
+        itemObj = JSONObj[i]["daily"]
+        timeStamps = itemObj.keys()
+        rtimeStamps = sorted(timeStamps)
+        prices = []
+        for ts in rtimeStamps:
+            prices.append(itemObj[ts])
+        return prices
+
+    def GEJSONparserTS(i, JSONObj):
+        itemObj = JSONObj[i]["daily"]
+        timeStamps = itemObj.keys()
+        rtimeStamps = sorted(timeStamps)
+        return rtimeStamps
+    if pullData == "full":
+        populateHistoricalJSON()
+    encoding = "Daily average price"
+    parserData = functools.partial(GEJSONparserData)
+    parserTS = functools.partial(GEJSONparserTS)
+    createCSVfromJSON(jsonFile, csvFile, encoding, parserData, parserTS)
+
+
+
+
+
+
+
+makeHistoricCSVfromGE('T1925.json','testing.csv')
+
 
 # print(getPrice(5321,'guidePrice'))
 
