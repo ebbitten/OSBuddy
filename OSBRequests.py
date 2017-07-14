@@ -33,6 +33,7 @@ GE_HISTORIC_JSON_PRICE_FILE = 'historicPrice.json'
 GE_HISTORIC_CSV_PRICE_FILE = 'historic.csv'
 OSB_HISTORIC_JSON_PRICE_FILE = 'OSBhistoricPrice.json'
 OSB_HISTORIC_CSV_PRICE_FILE = 'osbHistoric.csv'
+OSB_HISTORIC_CSV_FILE_PATH = 'C:/Users/adamh/Google Drive/Post College/Programming/Python/OSBuddy/OSBuddy/csv/'
 
 
 
@@ -240,20 +241,10 @@ def makeHistoricCSVfromGE(jsonFile = GE_HISTORIC_JSON_PRICE_FILE, csvFile = GE_H
     parserTS = functools.partial(GEJSONparserTS)
     createCSVfromJSON(jsonFile, csvFile, encoding, parserData, parserTS)
 
-def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFile = OSB_HISTORIC_CSV_PRICE_FILE, pullData = None):
-    encoding = "buyingPrice;buyingCompleted;sellingPrice;sellingCompleted;overallPrice;overallCompleted"
-    def OSBJSONparserData(i, JSONObj):
-        row = []
-        for line in JSONObj[i]:
-            cell = ""
-            for stat in encoding.split(";"):
-                try:
-                    value = line[stat]
-                except KeyError:
-                    value = 'NaN'
-                cell += str(value) + ";"
-            row.append(cell)
-        return row
+def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFilePath = OSB_HISTORIC_CSV_FILE_PATH, pullData = None):
+    allEncoding = "buyingPrice;buyingCompleted;sellingPrice;sellingCompleted;overallPrice;overallCompleted"
+    if pullData == "full":
+        populateHistoricalJSON(source = "OSB")
     def OSBJSONparserTS(i, JSONObj):
         allts = {}
         items = openJson('items.txt')
@@ -269,9 +260,21 @@ def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFile = OS
                 maxlen = curlen
                 index = item
         return allts[index]
-    if pullData == "full":
-        populateHistoricalJSON(source = "OSB")
-    createCSVfromJSON(jsonFile, csvFile, encoding, OSBJSONparserData, OSBJSONparserTS)
+    for encoder in allEncoding.split(";"):
+        def OSBJSONparserData(i, JSONObj):
+            row = []
+            for line in JSONObj[i]:
+                cell = ""
+                try:
+                    value = line[encoder]
+                except KeyError:
+                    value = 'NaN'
+                cell += str(value) + ";"
+                row.append(cell)
+            return row
+        csvFile = csvFilePath + str(encoder) + '.csv'
+        encoding = 'Item number' + str(encoder)
+        createCSVfromJSON(jsonFile, csvFile, encoding, OSBJSONparserData, OSBJSONparserTS)
 
 
 
