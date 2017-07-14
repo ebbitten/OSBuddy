@@ -25,7 +25,7 @@ HEADERS = {
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0',
     'cookie': 'redacted cloudflare cookie'
 }
-
+#TODO put all true global filepaths somewhere very global
 RSBUDDY_EXCHANGE_NAMES_URL = 'https://rsbuddy.com/static/exchange/names.json'
 RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL = 'https://api.rsbuddy.com/grandExchange'
 GE_EXCHANGE_URL = 'http://services.runescape.com/m=itemdb_oldschool/api/graph/'
@@ -269,11 +269,11 @@ def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFilePath 
                     value = line[encoder]
                 except KeyError:
                     value = 'NaN'
-                cell += str(value) + ";"
+                cell += str(value)
                 row.append(cell)
             return row
         csvFile = csvFilePath + str(encoder) + '.csv'
-        encoding = 'Item number' + str(encoder)
+        encoding = 'Item number for ' + str(encoder)
         createCSVfromJSON(jsonFile, csvFile, encoding, OSBJSONparserData, OSBJSONparserTS)
 
 
@@ -290,6 +290,6 @@ def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFilePath 
 
 # print(getPrice(5321,'guidePrice'))
 
-makeHistoricCSVfromOSB('OSBHistoricPrice2.json')
+#makeHistoricCSVfromOSB('OSBHistoricPrice2.json')
 
 
