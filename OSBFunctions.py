@@ -2,8 +2,6 @@ import json
 import operator
 
 
-#TODO add a way to apply multiple metrics to compile a list
-#TODO find a way to compute different metrics (especially those that require server requests
 
 
 class notTraded(Exception):
@@ -83,6 +81,5 @@ class pricesDict(object):
                     item[key] = currentOpen[item.ID][key]
 
 
-#
-
-
+def createPandasFromCSV(csv, pandasDataFrame):
+    pass
