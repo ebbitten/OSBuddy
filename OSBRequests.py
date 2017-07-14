@@ -32,7 +32,7 @@ GE_EXCHANGE_URL = 'http://services.runescape.com/m=itemdb_oldschool/api/graph/'
 GE_HISTORIC_JSON_PRICE_FILE = 'historicPrice.json'
 GE_HISTORIC_CSV_PRICE_FILE = 'historic.csv'
 OSB_HISTORIC_JSON_PRICE_FILE = 'OSBhistoricPrice.json'
-OSB_HISTORIC_CSV_PRICE_FILE = 'osbHistroic.csv'
+OSB_HISTORIC_CSV_PRICE_FILE = 'osbHistoric.csv'
 
 
 
@@ -164,7 +164,7 @@ def populateHistoricalJSON(startTime=0, frequency=1440, timeSleep = 4, tries = 3
         f = open('pickledumpOSB', 'wb')
         pickle.dump(historicals, f)
         f.close()
-    historic_file.write(str(historicals))
+    historic_file.write(json.dumps(historicals))
     historic_file.close()
 
 
@@ -208,7 +208,6 @@ def createCSVfromJSON(JSONfile, csvFile, encoding, parserData, parserTS):
             firstLine = False
         currentLine = dataLine[:]
         currentLine.insert(0, i) #also insert the item number in the 0th column
-        print("testing" + str(currentLine))
         csvwriter.writerow(currentLine)
     csvObj.close()
 
@@ -242,20 +241,34 @@ def makeHistoricCSVfromGE(jsonFile = GE_HISTORIC_JSON_PRICE_FILE, csvFile = GE_H
     createCSVfromJSON(jsonFile, csvFile, encoding, parserData, parserTS)
 
 def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFile = OSB_HISTORIC_CSV_PRICE_FILE, pullData = None):
-    encoding = "buyingPrice; buyingCompleted; sellingPrice; sellingCompleted; overallPrice; overallCompleted;"
+    encoding = "buyingPrice;buyingCompleted;sellingPrice;sellingCompleted;overallPrice;overallCompleted"
     def OSBJSONparserData(i, JSONObj):
         row = []
         for line in JSONObj[i]:
             cell = ""
-            for stat in encoding.strip().split(";"):
-                cell += str(line[stat]) + ";"
+            for stat in encoding.split(";"):
+                try:
+                    value = line[stat]
+                except KeyError:
+                    value = 'NaN'
+                cell += str(value) + ";"
             row.append(cell)
         return row
     def OSBJSONparserTS(i, JSONObj):
-        ts = []
-        for line in JSONObj[i]:
-            ts.append(line['ts'])
-        return ts
+        allts = {}
+        items = openJson('items.txt')
+        maxlen = 0
+        index = 0
+        for item in items:
+            ts = []
+            for line in JSONObj[item]:
+                ts.append(line['ts'])
+            allts[item] = ts
+            curlen = len(ts)
+            if curlen > maxlen:
+                maxlen = curlen
+                index = item
+        return allts[index]
     if pullData == "full":
         populateHistoricalJSON(source = "OSB")
     createCSVfromJSON(jsonFile, csvFile, encoding, OSBJSONparserData, OSBJSONparserTS)
