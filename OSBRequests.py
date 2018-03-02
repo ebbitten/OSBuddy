@@ -172,7 +172,7 @@ def populateHistoricalJSON(startTime=0, frequency=1440, timeSleep = 4, tries = 3
 def populateCurrentOpenOrders(timeSleep=.5):
     items = openJson('items.txt')
     currentOpen = {}
-    OSBcurrentRequestor = functools.partial(getPrice,type = 'guideprice' )
+    OSBcurrentRequestor = functools.partial(getPrice,type = 'guidePrice' )
     fillJSONfromFunction(currentOpen, OSBcurrentRequestor, timeSleep)
     currentOpen_file = open('currentOpen','w')
     currentOpen_file.write(json.dumps(currentOpen))
