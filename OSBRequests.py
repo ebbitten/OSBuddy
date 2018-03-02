@@ -241,7 +241,7 @@ def makeHistoricCSVfromGE(jsonFile = GE_HISTORIC_JSON_PRICE_FILE, csvFile = GE_H
     parserTS = functools.partial(GEJSONparserTS)
     createCSVfromJSON(jsonFile, csvFile, encoding, parserData, parserTS)
 
-def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFilePath = OSB_HISTORIC_CSV_FILE_PATH, pullData = None):
+def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFilePath = OSB_HISTORIC_CSV_FILE_PATH, pullData = "full"):
     allEncoding = "buyingPrice;buyingCompleted;sellingPrice;sellingCompleted;overallPrice;overallCompleted"
     if pullData == "full":
         populateHistoricalJSON(source = "OSB")
@@ -290,6 +290,6 @@ def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFilePath 
 
 # print(getPrice(5321,'guidePrice'))
 
-#makeHistoricCSVfromOSB('OSBHistoricPrice2.json')
+makeHistoricCSVfromOSB()
 
 

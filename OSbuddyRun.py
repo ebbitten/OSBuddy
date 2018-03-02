@@ -2,5 +2,6 @@
 import OSBRequests
 import OSBFunctions
 import OSBFunctions
+import OSBAlgos
 OSBRequests.populateCurrentOpenOrders()
-OSBFunctions.betterMatchMaking()
+OSBAlgos.betterMatchMaking()
