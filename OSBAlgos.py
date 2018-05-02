@@ -112,3 +112,4 @@ def betterMatchMaking( price_file = 'currentOpen', maxlen = 10, minProfit = 2000
               " Buy Price ", rsItem['buying'], "Sell Price ", rsItem['selling'], "buy Quantity ",
               rsItem['buyingQuantity'], " Sell Quantity ", rsItem['sellingQuantity']," ID is ", rsItem.ID)
 
+betterMatchMaking()

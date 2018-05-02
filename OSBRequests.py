@@ -12,8 +12,12 @@ import json
 import requests
 from selenium import webdriver
 import time
+import datetime
 import pickle
 from OSBFunctions import openJson
+import functools
+import csv
+import pickle
 # 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36',
 
 
@@ -21,10 +25,15 @@ HEADERS = {
     'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0',
     'cookie': 'redacted cloudflare cookie'
 }
-
+#TODO put all true global filepaths somewhere very global
 RSBUDDY_EXCHANGE_NAMES_URL = 'https://rsbuddy.com/static/exchange/names.json'
 RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL = 'https://api.rsbuddy.com/grandExchange'
-
+GE_EXCHANGE_URL = 'http://services.runescape.com/m=itemdb_oldschool/api/graph/'
+GE_HISTORIC_JSON_PRICE_FILE = 'historicPrice.json'
+GE_HISTORIC_CSV_PRICE_FILE = 'historic.csv'
+OSB_HISTORIC_JSON_PRICE_FILE = 'OSBhistoricPrice.json'
+OSB_HISTORIC_CSV_PRICE_FILE = 'osbHistoric.csv'
+OSB_HISTORIC_CSV_FILE_PATH = 'C:/Users/adamh/Google Drive/Post College/Programming/Python/OSBuddy/OSBuddy/csv/'
 
 
 
@@ -57,9 +66,23 @@ def getElementByBrowser(url=RSBUDDY_EXCHANGE_NAMES_URL, element='/html/body'):
     elem = browserObj.find_element_by_xpath(element)
     return elem.text
 
+def queryPrice(url):
+    '''
+    takes in a url, returns a JSON object
+    :param url:
+    :return:
+    '''
+    print(url)
+    try:
+        price = json.loads(requests.get(url,headers=HEADERS).text)
+        return price
+    except :
+        #TODO update this so that it can be used to return an error log that can be autoreplayed
+        print("Failed with ")
+        print(url)
+        return "Delete"
 
-
-def getPrice(itemID, type='graph', startTime=time.time()*1000, frequency=1440):
+def getPrice(itemID, type='graph', startTime=0, frequency=1440):
     '''
     :param itemID: ID to pass in
     :param type: 'graph' to get timestamped based prices
@@ -75,51 +98,198 @@ def getPrice(itemID, type='graph', startTime=time.time()*1000, frequency=1440):
     startTime=int(startTime)
     url = RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL + '?a=' +str(type)     + '&start=' +str(startTime) + \
           '&g=' + str(frequency) +'&i=' +str(itemID)
-    print(url)
-    try:
-        price = json.loads(requests.get(url,headers=HEADERS).text)
-        return price
-    except :
-        #TODO update this so that it can be used to return an error log that can be autoreplayed
-        print("Failed with ")
-        print(url)
-        print("for an item ID of ")
-        print(itemID)
-        return "Delete"
-
-def updatePrice(itemID, curObj, properties = ['buying','buyingQuantity','selling','sellingQuantity']):
-
-    pass
-    #todo allow an item to come in and update various properties
+    return queryPrice(url)
 
 
-def populateHistorical(startTime=time.time(), frequency=8000,timeSleep =.5):
+def getPriceGE(itemID):
+    '''
+    Gets the price from the OSRS GE, benefit is that it can go back six months
+    :param itemID: ID to pass in
+    :return: JSON object of the form "ts":price
+    '''
+    url = GE_EXCHANGE_URL + str(itemID) + ".json"
+    return queryPrice(url)
+
+def ts2date(ts):
+    dateObj = datetime.date.fromtimestamp(ts/1000)
+    print(dateObj.ctime())
+
+def fillJSONfromFunction(dictObj, functionObj, timeSleep = .5, tries = 3):
+    '''
+    Takes in a dictionary object to populate data from a given source using the function object
+    :param dictObj: dictionary that gets filled with information based on the requestor function passed in
+    :param functionObj: requestor function to query websites for prices
+    :param timeSleep: how long to sleep between requests
+    :param tries: how many times to try to get the same item populated, necessary to prevent infinite loop
+    :return: Nothing, mutates the dictObj though
+    '''
+    items = openJson('items.txt')
+    rerun = []
+    previousItem = ""
+    count = 0
+    for i in items:
+        dictObj[i] = functionObj(i)
+        if dictObj[i] == "Delete":
+            rerun.append(i)
+            count += 3 #once we get to retrying, try 3 as often as your total failures
+        time.sleep(timeSleep)
+    while len(rerun)>0:
+        currentItem = rerun.pop(0)
+        print("Retrying " + str(currentItem))
+        dictObj[currentItem] = functionObj(currentItem)
+        if dictObj[currentItem] == "Delete":
+            rerun.append(currentItem)
+        time.sleep(timeSleep)
+        count -= 1
+        if count ==0:
+            break
+
+
+
+
+def populateHistoricalJSON(startTime=0, frequency=1440, timeSleep = 4, tries = 3, source = "GE"):
     items= openJson('items.txt')
     historicals = {}
-    for i in items:
-        historicals[i]=getPrice(i,'graph',startTime,frequency)
-        time.sleep(timeSleep)
-    historic_file = open('historicPrice','w')
-    historic_file.write(str(historicals))
+    if source =="GE":
+        pricerequestor = functools.partial(getPriceGE)
+    else:
+        pricerequestor = functools.partial(getPrice, startTime=startTime, frequency=frequency)
+    fillJSONfromFunction(historicals, pricerequestor, timeSleep)
+    if source=="GE":
+        historic_file = open(GE_HISTORIC_JSON_PRICE_FILE,'w')
+        f = open('pickledumpGE', 'wb')
+        pickle.dump(historicals, f)
+        f.close()
+    else:
+        historic_file = open(OSB_HISTORIC_JSON_PRICE_FILE, 'w')
+        f = open('pickledumpOSB', 'wb')
+        pickle.dump(historicals, f)
+        f.close()
+    historic_file.write(json.dumps(historicals))
     historic_file.close()
-#TODO move exception code down here and have it populate another file for retrying
+
+
 def populateCurrentOpenOrders(timeSleep=.5):
     items = openJson('items.txt')
     currentOpen = {}
-    for i in items:
-        price = getPrice(i,'guidePrice')
-        if price == "Delete":
-            continue
-        currentOpen[i] = price
-        time.sleep(timeSleep)
+    OSBcurrentRequestor = functools.partial(getPrice,type = 'guidePrice' )
+    fillJSONfromFunction(currentOpen, OSBcurrentRequestor, timeSleep)
     currentOpen_file = open('currentOpen','w')
     currentOpen_file.write(json.dumps(currentOpen))
     currentOpen_file.close()
     print("Completed populating current orders!")
 
 
-# populateHistorical(timeSleep=1)
+def createCSVfromJSON(JSONfile, csvFile, encoding, parserData, parserTS):
+    '''First row will have the encoding format for how data will be stored
+    in each cell in the first column (decided by the encoding parameter
+    , and all the timestamps in the rest of the columns. The parsing parameter
+    will be a function that assists with decoding the JSON. Columns should go from oldest to newest
+    Ultimately this should let me work with Pandas and do things in terms of arrays
+    parserData and parserTS should both take in a JSON obj and an item id
+    '''
+    items = openJson('items.txt')
+    #make hook to remove any ']' or '[' from JSON for OSB
+    with open(JSONfile, 'r') as f:
+        filestr = f.read()
+        print(filestr)
+        #jsonstr = filestr.translate(None, "[]""[]")
+        #print(jsonstr)
+        JSONObj = json.loads(filestr)
+    firstLine = True
+    csvObj = open(csvFile, 'w', newline='')
+    csvwriter = csv.writer(csvObj)
+    for i in items:
+        dataLine = parserData(i, JSONObj) #This should either be a list with the same number of elements as tsLine or a dict
+        if firstLine:
+            tsLine = parserTS(i, JSONObj)  # Can control the order of a list when printing to CSV which makes it attractive
+            header = tsLine
+            header.insert(0, encoding)
+            csvwriter.writerow(header)
+            firstLine = False
+        currentLine = dataLine[:]
+        currentLine.insert(0, i) #also insert the item number in the 0th column
+        csvwriter.writerow(currentLine)
+    csvObj.close()
+
+
+def updateCSVfromJSON():
+    pass
+
+
+def makeHistoricCSVfromGE(jsonFile = GE_HISTORIC_JSON_PRICE_FILE, csvFile = GE_HISTORIC_CSV_PRICE_FILE, pullData = None):
+    #TODO consider putting all of these functions into classes and methods
+    encoding = "Daily average price; six month trend"
+    def GEJSONparserData(i, JSONObj):
+        dailyitemObj = JSONObj[i]["daily"]
+        runAvgItemObj = JSONObj[i]["average"]
+        timeStamps = dailyitemObj.keys()
+        rtimeStamps = sorted(timeStamps)
+        prices = []
+        for ts in rtimeStamps:
+            prices.append(str(dailyitemObj[ts]) + ";" + str(runAvgItemObj[ts]))
+        return prices
+
+    def GEJSONparserTS(i, JSONObj):
+        itemObj = JSONObj[i]["daily"]
+        timeStamps = itemObj.keys()
+        rtimeStamps = sorted(timeStamps)
+        return rtimeStamps
+    if pullData == "full":
+        populateHistoricalJSON(source = "GE")
+    parserData = functools.partial(GEJSONparserData) #TODO Do I actually need these or could I just pass the function directly?
+    parserTS = functools.partial(GEJSONparserTS)
+    createCSVfromJSON(jsonFile, csvFile, encoding, parserData, parserTS)
+
+def makeHistoricCSVfromOSB(jsonFile = OSB_HISTORIC_JSON_PRICE_FILE, csvFilePath = OSB_HISTORIC_CSV_FILE_PATH, pullData = "full"):
+    allEncoding = "buyingPrice;buyingCompleted;sellingPrice;sellingCompleted;overallPrice;overallCompleted"
+    if pullData == "full":
+        populateHistoricalJSON(source = "OSB")
+    def OSBJSONparserTS(i, JSONObj):
+        allts = {}
+        items = openJson('items.txt')
+        maxlen = 0
+        index = 0
+        for item in items:
+            ts = []
+            for line in JSONObj[item]:
+                ts.append(line['ts'])
+            allts[item] = ts
+            curlen = len(ts)
+            if curlen > maxlen:
+                maxlen = curlen
+                index = item
+        return allts[index]
+    for encoder in allEncoding.split(";"):
+        def OSBJSONparserData(i, JSONObj):
+            row = []
+            for line in JSONObj[i]:
+                cell = ""
+                try:
+                    value = line[encoder]
+                except KeyError:
+                    value = 'NaN'
+                cell += str(value)
+                row.append(cell)
+            return row
+        csvFile = csvFilePath + str(encoder) + '.csv'
+        encoding = 'Item number for ' + str(encoder)
+        createCSVfromJSON(jsonFile, csvFile, encoding, OSBJSONparserData, OSBJSONparserTS)
+
+
+
+
+
+
+
+
+
+#makeHistoricCSVfromGE()
+# populateHistoricalJSON(timeSleep=1, tries=3, source = "OSB")
+
 
 # print(getPrice(5321,'guidePrice'))
+
+makeHistoricCSVfromOSB()
 
 
