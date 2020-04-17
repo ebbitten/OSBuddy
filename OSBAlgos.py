@@ -1,12 +1,12 @@
 import functools
 
-from OSBFunctions import openJson, get_id, notTraded, compareItemsCreateList, rsItem, pricesDict
+from OSBFunctions import open_json, get_id, NotTraded, compare_items_create_list, rsItem, pricesDict
 
 
 def highAlchBest(pricesSummaryLoc = "ItemSummary1_23.json", maxLen = 10,
                  priceKeys = ["overall_average", "buy_average", "sell_average"]):
     #open files
-    pricesObj = openJson(pricesSummaryLoc)
+    pricesObj = open_json(pricesSummaryLoc)
 
     #arrays for top 10
     top10Dict ={}
@@ -31,7 +31,7 @@ def highAlchBest(pricesSummaryLoc = "ItemSummary1_23.json", maxLen = 10,
     for key in top10Dict:
         curList = top10Dict[key]["List"]
         compareFunc = functools.partial(compareHighAlch, key)
-        compareItemsCreateList(curList,pricesObj,compareFunc,maxLen)
+        compare_items_create_list(curList, pricesObj, compareFunc, maxLen)
 
     #print out the results
     print("Printing out the result of High Alch analysis")
@@ -49,7 +49,7 @@ def findMatchMaking(pricesSummaryLoc = "ItemSummary1_23.json", maxlen = 10):
     :param maxlen: how many items you want to consider
     :return: nothing, currently just prints to terminal
     '''
-    pricesObj = openJson(pricesSummaryLoc)
+    pricesObj = open_json(pricesSummaryLoc)
     curList = []
 
     def compareMatchMaking(rsItem):
@@ -66,7 +66,7 @@ def findMatchMaking(pricesSummaryLoc = "ItemSummary1_23.json", maxlen = 10):
         return metric
 
 
-    compareItemsCreateList(curList, pricesObj, compareMatchMaking, maxlen)
+    compare_items_create_list(curList, pricesObj, compareMatchMaking, maxlen)
 
     for rsItem in curList:
         print("Potential Profit for item", pricesObj[rsItem[0]]["name"], "Is", round(rsItem[1],5), "buy price",
@@ -104,7 +104,7 @@ def betterMatchMaking( price_file = 'currentOpen', maxlen = 10, minProfit = 2000
 
     compareFunc = functools.partial(compareMatchMaking,minProfit,maxSpending)
 
-    compareItemsCreateList(curList, pricesObj, compareFunc, maxlen)
+    compare_items_create_list(curList, pricesObj, compareFunc, maxlen)
 
     for group in curList:
         rsItem = group[0]

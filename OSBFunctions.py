@@ -2,9 +2,7 @@ import json
 import operator
 
 
-
-
-class notTraded(Exception):
+class NotTraded(Exception):
     pass
 
 
@@ -13,7 +11,8 @@ def get_id(name, names):
         if v["name"]==name:
             return k
 
-def openJson(fileLoc):
+
+def open_json(fileLoc):
     file = open(fileLoc,"r")
     Obj = ""
     for line in file:
@@ -21,9 +20,9 @@ def openJson(fileLoc):
     Obj = json.JSONDecoder().decode(Obj) #TODO figure out why I can't use json.loads instead of JSONDecoder/all this
     return Obj
 
-def compareItemsCreateList (curList, pricesObj, comparisonKey, maxLen):
-    '''
 
+def compare_items_create_list (curList, pricesObj, comparisonKey, maxLen):
+    '''
     :param curList: list that's manipulated in place
     :param pricesObj: JSON object that has all of the price data for a snapshot
     :param comparisonKey: function that only accepts rsItem as a parameter (may assume priceObj)
@@ -34,7 +33,7 @@ def compareItemsCreateList (curList, pricesObj, comparisonKey, maxLen):
     for rsItem in pricesObj.items:
         try:
             metric = comparisonKey(rsItem)
-        except notTraded:
+        except NotTraded:
             continue
         if len(curList) < maxLen:
             curList.append([rsItem, metric])
@@ -45,6 +44,7 @@ def compareItemsCreateList (curList, pricesObj, comparisonKey, maxLen):
                 curList.remove(curMinMetricItem)
                 curList.append([rsItem, metric])
     curList.sort(key=operator.itemgetter(1))
+
 
 class rsItem (dict):
     def __init__(self,ID,name):
@@ -62,10 +62,11 @@ class rsItem (dict):
         self.metric = 0
 #TODO figure out why I can't populate any of the above at run time, also why can it only be called in bracket notation?
 
+
 class pricesDict(object):
     def __init__(self):
         self.items = []
-        items = openJson('items.txt')
+        items = open_json('data/items.txt')
         for i in items:
             self.items.append(rsItem(i,items[i]['name']))
     def addOpen(self):
@@ -74,7 +75,7 @@ class pricesDict(object):
         :return: Populates rsItems with "BuyingQuantity", "Buying" (price), "Selling" (price), "Selling Quantity", and
         "Overall" (Price)
         '''
-        currentOpen = openJson('currentOpen')
+        currentOpen = open_json('data/currentOpen')
         for item in self.items:
             if item.ID in currentOpen:
                 for key in currentOpen[str(item.ID)]:
