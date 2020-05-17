@@ -1,4 +1,4 @@
-close browsers aftewrads
+close browsers afterwards
 Print out the buy/sell prices for results of high alch analyses
 get rid of "rsItem" in high alch analysis
 group together items in high alch analaysis

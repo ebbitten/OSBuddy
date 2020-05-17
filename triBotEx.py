@@ -23,7 +23,7 @@ def get_price(item_id):
 
 def main():
     names = json.loads(requests.get(RSBUDDY_EXCHANGE_NAMES_URL, headers=HEADERS).text)
-    items_file = open('items.txt', 'r')
+    items_file = open('data/items.txt', 'r')
     prices_file = open('prices.txt', 'w')
     for line in items_file:
         line = line.replace('\n', '')

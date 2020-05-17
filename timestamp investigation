@@ -25,3 +25,14 @@ difference per second:
 
 where Datecode is the number of milliseconds elapsed from January 1st, 1970 and Price is the item's market price for that day.
 time.time() returns seconds since January 1st, 1970
+
+g=8000 seens to give frequencies in increments of one day
+
+Also it seems that OSBuddy will only go back one month *sadface*
+
+
+Consider using SQLite (https://plot.ly/ipython-notebooks/big-data-analytics-with-pandas-and-sqlite/) if it gets too difficult to analyze things in memory
+
+const formatUrl = (itemId) => http://services.runescape.com/m=itemdb_oldschool/api/graph/2.json
+
+check to see if 39 is populated
