@@ -1,6 +1,6 @@
 import functools
 
-from OSBFunctions import open_json, get_id, NotTraded, compare_items_create_list, rsItem, pricesDict
+from OSBFunctions import open_json, get_id, compare_items_create_list, pricesDict
 
 
 def highAlchBest(pricesSummaryLoc = "ItemSummary1_23.json", maxLen = 10,

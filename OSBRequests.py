@@ -13,7 +13,6 @@ import requests
 from selenium import webdriver
 import time
 import datetime
-import pickle
 from OSBFunctions import open_json
 import functools
 import csv
@@ -55,7 +54,7 @@ def getOSBuddySummary():
     items_file.write(names)
     items_file.close()
     base_prices = getElementByBrowser(RSBUDDY_EXCHANGE_ITEM_ID_PRICE_URL)
-    prices_file = open('prices.txt', 'w')
+    prices_file = open('old ideas/prices.txt', 'w')
     prices_file.write(base_prices)
     prices_file.close()
 
